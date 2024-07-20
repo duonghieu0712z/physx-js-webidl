@@ -1,4 +1,4 @@
 [submodule "PhysX"]
 	path = PhysX
-	url = git@github.com:duonghieu0712z/PhysX.git
+	url = https://github.com/duonghieu0712z/PhysX.git
 	branch = webidl-bindings
