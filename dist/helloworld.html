@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>PhysX Test</title>
         <style>
             html,
@@ -113,14 +115,14 @@
                 }
 
                 // clean up temp objects
-                PX.destroy(plane);
-                PX.destroy(boxGeometry);
-                PX.destroy(tmpFilterData);
-                PX.destroy(tmpPose);
-                PX.destroy(tmpVec);
-                PX.destroy(shapeFlags);
-                PX.destroy(sceneDesc);
-                PX.destroy(tolerances);
+                PX.release(plane);
+                PX.release(boxGeometry);
+                PX.release(tmpFilterData);
+                PX.release(tmpPose);
+                PX.release(tmpVec);
+                PX.release(shapeFlags);
+                PX.release(sceneDesc);
+                PX.release(tolerances);
                 console.log('[PHYSX]: Create scene objects');
 
                 // setup debug drawing stuff
