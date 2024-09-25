@@ -61,11 +61,11 @@
                 //     }
 
                 //     if (PX.FilterObjectIsTrigger(attribute0) || PX.FilterObjectIsTrigger(attribute1)) {
-                //         pairFlags.raise(PX.PxPairFlag.eTRIGGER_DEFAULT);
+                //         pairFlags.setAll(PX.PxPairFlag.eTRIGGER_DEFAULT);
                 //         return PX.PxFilterFlag.eDEFAULT;
                 //     }
 
-                //     pairFlags.raise(PX.PxPairFlag.eCONTACT_DEFAULT);
+                //     pairFlags.setAll(PX.PxPairFlag.eCONTACT_DEFAULT);
                 //     return PX.PxFilterFlag.eDEFAULT;
                 // };
 
@@ -174,7 +174,8 @@
                     });
                 }
 
-                function project(x, y, z) {
+                function project(pos) {
+                    const { x, y, z } = pos;
                     const result = vec4.transformMat4(tmpVec4, [x, y, z, 1], viewProjectionMatrix);
                     const clipX = result[0] / result[3];
                     const clipY = result[1] / result[3];
@@ -189,18 +190,44 @@
                     context.stroke();
                 }
 
-                function debugDraw() {
-                    context.clearRect(0, 0, canvas.width, canvas.height); // clears the canvas
-
-                    const rb = scene.getRenderBuffer();
+                function drawLines(rb) {
                     const nbLines = rb.getNbLines();
                     const lines = rb.getLines();
                     for (let i = 0; i < nbLines; i++) {
                         const line = PX.getDebugLineAt(lines, i);
-                        const from = project(line.pos0.x, line.pos0.y, line.pos0.z);
-                        const to = project(line.pos1.x, line.pos1.y, line.pos1.z);
+                        const from = project(line.pos0);
+                        const to = project(line.pos1);
                         drawLine(from, to, line.color0);
                     }
+                }
+
+                function drawTriangle(a, b, c, color) {
+                    context.beginPath();
+                    context.fillStyle = getColor(color);
+                    context.moveTo(...a);
+                    context.lineTo(...b);
+                    context.lineTo(...c);
+                    context.closePath();
+                    context.fill();
+                }
+
+                function drawTriangles(rb) {
+                    const nbTriangles = rb.getNbTriangles();
+                    const triangles = rb.getTriangles();
+                    for (let i = 0; i < nbTriangles; i++) {
+                        const triangle = PX.getDebugTriangleAt(triangles, i);
+                        const a = project(triangle.pos0);
+                        const b = project(triangle.pos1);
+                        const c = project(triangle.pos2);
+                        drawTriangle(a, b, c, triangle.color0);
+                    }
+                }
+
+                function debugDraw() {
+                    context.clearRect(0, 0, canvas.width, canvas.height); // clears the canvas
+                    const rb = scene.getRenderBuffer();
+                    drawLines(rb);
+                    drawTriangles(rb);
                 }
 
                 function getColor(color) {
