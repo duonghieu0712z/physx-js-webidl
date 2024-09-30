@@ -32,7 +32,6 @@
         <script>
             PhysX().then(function (PX) {
                 globalThis.PX = PX;
-                console.log(PX);
 
                 const version = PX.PHYSICS_VERSION;
                 const major = (version >> 24) & 0xff;
