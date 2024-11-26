@@ -23,8 +23,8 @@
     <body>
         <canvas></canvas>
         <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/3.4.2/gl-matrix-min.js"
-            integrity="sha512-eV9ExyTa3b+YHr99IBTYpwk4wbgDMDlfW8uTxhywO8dWb810fGUSKDgHhEv1fAqmJT4jyYnt1iWWMW4FRxeQOQ=="
+            src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/3.4.2/gl-matrix-min.min.js"
+            integrity="sha512-cR3oS5mKRWD+38vYi1CNJk1DLpi104ovuQBuVv9p7nNxeqzSNiHzlboK2BZQybmpTi1QNnQ5unYajpURcMjeZQ=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
         ></script>
@@ -48,6 +48,7 @@
                 const physics = PX.CreatePhysics(version, foundation, tolerances);
                 console.log('[PHYSX]: Create PhysX physics');
 
+                // // create a custom filter shader
                 // const filterShaderCallback = new PX.PxSimulationFilterShaderCallbackImpl();
                 // filterShaderCallback.onFilterShader = (attribute0, filterData0, attribute1, filterData1, pairFlags) => {
                 //     // wrap pointers
@@ -197,6 +198,7 @@
                         const from = project(line.pos0);
                         const to = project(line.pos1);
                         drawLine(from, to, line.color0);
+                        PX.deleteCache(line, true);
                     }
                 }
 
@@ -219,6 +221,7 @@
                         const b = project(triangle.pos1);
                         const c = project(triangle.pos2);
                         drawTriangle(a, b, c, triangle.color0);
+                        PX.deleteCache(triangle, true);
                     }
                 }
 
