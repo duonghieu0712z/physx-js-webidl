@@ -8,3 +8,8 @@
 cd ./PhysX/physx
 rm -rf compiler/emscripten-*
 ./generate_projects.sh emscripten
+
+# if [ -d "/src/types" ]; then
+#     cd /src/types
+#     ./generate_types.sh
+# fi

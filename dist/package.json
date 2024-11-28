@@ -1,9 +1,10 @@
 {
   "name": "physx-js-webidl",
-  "version": "2.4.1",
-  "description": "Javascript/WASM bindings for Nvidia PhysX 5.4.1",
+  "version": "2.4.2",
+  "description": "Javascript/WASM bindings for Nvidia PhysX 5.4.2",
   "author": "fabmax",
   "main": "physx-js-webidl.js",
+  "types": "physx-js-webidl.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/fabmax/physx-js-webidl.git"
