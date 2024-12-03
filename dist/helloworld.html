@@ -126,7 +126,7 @@
                 console.log('[PHYSX]: Create scene objects');
 
                 // setup debug drawing stuff
-                const { mat4, vec4, vec3 } = glMatrix;
+                const { mat4, vec4 } = glMatrix;
                 const viewMatrix = mat4.create();
                 const projectionMatrix = mat4.create();
                 const viewProjectionMatrix = mat4.create();
@@ -168,7 +168,7 @@
 
                         // use debug drawer interface to draw boxes on a canvas.
                         // in a real world application you would query the box poses and update your graphics boxes accordingly
-                        debugDraw(scene);
+                        debugDraw();
 
                         requestAnimationFrame(loop);
                     });
