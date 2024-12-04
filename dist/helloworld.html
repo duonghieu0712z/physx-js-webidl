@@ -48,33 +48,38 @@
                 const physics = PX.CreatePhysics(version, foundation, tolerances);
                 console.log('[PHYSX]: Create PhysX physics');
 
-                // // create a custom filter shader
-                // const filterShaderCallback = new PX.PxSimulationFilterShaderCallbackImpl();
-                // filterShaderCallback.onFilterShader = (attribute0, filterData0, attribute1, filterData1, pairFlags) => {
-                //     // wrap pointers
-                //     filterData0 = PX.wrapPointer(filterData0, PX.PxFilterData);
-                //     filterData1 = PX.wrapPointer(filterData1, PX.PxFilterData);
-                //     pairFlags = PX.wrapPointer(pairFlags, PX.PxPairFlags);
+                let filterShader = null;
+                const useCustomFilterShader = false; // set to true to use a custom filter shader
+                if (useCustomFilterShader) {
+                    const filterShaderCallback = new PX.PxSimulationFilterShaderCallbackImpl();
+                    filterShaderCallback.onFilterShader = (attribute0, filterData0, attribute1, filterData1, pairFlags) => {
+                        // wrap pointers
+                        filterData0 = PX.wrapPointer(filterData0, PX.PxFilterData);
+                        filterData1 = PX.wrapPointer(filterData1, PX.PxFilterData);
+                        pairFlags = PX.wrapPointer(pairFlags, PX.PxPairFlags);
 
-                //     if (!(filterData0.word0 & filterData1.word1) && !(filterData1.word0 & filterData0.word1)) {
-                //         return PX.PxFilterFlag.eSUPPRESS;
-                //     }
+                        if (!(filterData0.word0 & filterData1.word1) && !(filterData1.word0 & filterData0.word1)) {
+                            return PX.PxFilterFlag.eSUPPRESS;
+                        }
 
-                //     if (PX.FilterObjectIsTrigger(attribute0) || PX.FilterObjectIsTrigger(attribute1)) {
-                //         pairFlags.setAll(PX.PxPairFlag.eTRIGGER_DEFAULT);
-                //         return PX.PxFilterFlag.eDEFAULT;
-                //     }
+                        if (PX.FilterObjectIsTrigger(attribute0) || PX.FilterObjectIsTrigger(attribute1)) {
+                            pairFlags.setAll(PX.PxPairFlag.eTRIGGER_DEFAULT);
+                            return PX.PxFilterFlag.eDEFAULT;
+                        }
 
-                //     pairFlags.setAll(PX.PxPairFlag.eCONTACT_DEFAULT);
-                //     return PX.PxFilterFlag.eDEFAULT;
-                // };
+                        pairFlags.setAll(PX.PxPairFlag.eCONTACT_DEFAULT);
+                        return PX.PxFilterFlag.eDEFAULT;
+                    };
+                    filterShader = PX.CustomFilterShader(filterShaderCallback);
+                } else {
+                    filterShader = PX.DefaultFilterShader();
+                }
 
                 const tmpVec = new PX.PxVec3(0, -9.81, 0);
                 const sceneDesc = new PX.PxSceneDesc(tolerances);
                 sceneDesc.gravity = tmpVec;
                 sceneDesc.cpuDispatcher = PX.CreateDefaultCpuDispatcher(0);
-                sceneDesc.filterShader = PX.DefaultFilterShader();
-                // sceneDesc.filterShader = PX.CustomFilterShader(filterShaderCallback);
+                sceneDesc.filterShader = filterShader;
 
                 const scene = physics.createScene(sceneDesc);
                 scene.setVisualizationParameter(PX.PxVisualizationParameter.eSCALE, 1);
