@@ -6,9 +6,7 @@ make -j8
 
 cp sdk_source_bin/physx-js-webidl.js ../../../../dist/
 cp sdk_source_bin/physx-js-webidl.wasm ../../../../dist/
-
 cp sdk_source_bin/physx-js-webidl.asm.js ../../../../dist/
-cp sdk_source_bin/physx-js-webidl.asm.js.mem ../../../../dist/
 
 # if [ -d "/src/types" ]; then
 #     cp /src/types/physx-js-webidl.d.ts /src/dist/
