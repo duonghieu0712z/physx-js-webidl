@@ -1,4 +1,4 @@
-FROM emscripten/emsdk:3.1.51
+FROM emscripten/emsdk:3.1.74
 
 RUN apt-get update && apt-get install python3 -y
 # RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
