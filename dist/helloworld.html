@@ -49,7 +49,7 @@
                 console.log('[PHYSX]: Create PhysX physics');
 
                 let filterShader = null;
-                const useCustomFilterShader = false; // set to true to use a custom filter shader
+                const useCustomFilterShader = true;
                 if (useCustomFilterShader) {
                     const filterShaderCallback = new PX.PxSimulationFilterShaderCallbackImpl();
                     filterShaderCallback.onFilterShader = (attribute0, filterData0, attribute1, filterData1, pairFlags) => {
@@ -67,7 +67,12 @@
                             return PX.PxFilterFlag.eDEFAULT;
                         }
 
-                        pairFlags.setAll(PX.PxPairFlag.eCONTACT_DEFAULT);
+                        pairFlags.setAll(
+                            PX.PxPairFlag.eCONTACT_DEFAULT |
+                            PX.PxPairFlag.eNOTIFY_TOUCH_FOUND |
+                            PX.PxPairFlag.eNOTIFY_TOUCH_PERSISTS |
+                            PX.PxPairFlag.eNOTIFY_TOUCH_LOST
+                        );
                         return PX.PxFilterFlag.eDEFAULT;
                     };
                     filterShader = PX.CustomFilterShader(filterShaderCallback);
@@ -75,11 +80,50 @@
                     filterShader = PX.DefaultFilterShader();
                 }
 
+                const simulationCb = new PX.PxSimulationEventCallbackImpl();
+                simulationCb.onConstraintBreak = (constraints, count) => {};
+                simulationCb.onWake = (actors, count) => {};
+                simulationCb.onSleep = (actors, count) => {};
+                simulationCb.onContact = (pairHeader, pairs, nbPairs) => {
+                    for (let i = 0; i < nbPairs; i++) {
+                        const pair = PX.getContactPairAt(pairs, i);
+                        const flags = pair.flags;
+                        const actor0 = pair.get_shapes(0).getActor();
+                        const actor1 = pair.get_shapes(1).getActor();
+
+                        if (flags.isSet(PX.PxPairFlag.eNOTIFY_TOUCH_FOUND)) {
+                            console.log(`${actor0.getName()} collision enter with ${actor1.getName()}`);
+                        }
+                        if (flags.isSet(PX.PxPairFlag.eNOTIFY_TOUCH_PERSISTS)) {
+                            console.log(`${actor0.getName()} collision stay with ${actor1.getName()}`);
+                        }
+                        if (flags.isSet(PX.PxPairFlag.eNOTIFY_TOUCH_LOST)) {
+                            console.log(`${actor0.getName()} collision exit with ${actor1.getName()}`);
+                        }
+                        PX.deleteCache(pair);
+                    }
+                };
+                simulationCb.onTrigger = (pairs, count) => {
+                    for (let i = 0; i < count; i++) {
+                        const pair = PX.getTriggerPairAt(pairs, i);
+                        const { status, triggerActor, otherActor } = pair;
+
+                        if (status & PX.PxPairFlag.eNOTIFY_TOUCH_FOUND) {
+                            console.log(`${triggerActor.getName()} trigger enter with ${otherActor.getName()}`);
+                        }
+                        if (status & PX.PxPairFlag.eNOTIFY_TOUCH_LOST) {
+                            console.log(`${triggerActor.getName()} trigger exit with ${otherActor.getName()}`);
+                        }
+                        PX.deleteCache(pair);
+                    }
+                };
+
                 const tmpVec = new PX.PxVec3(0, -9.81, 0);
                 const sceneDesc = new PX.PxSceneDesc(tolerances);
                 sceneDesc.gravity = tmpVec;
                 sceneDesc.cpuDispatcher = PX.CreateDefaultCpuDispatcher(0);
                 sceneDesc.filterShader = filterShader;
+                sceneDesc.simulationEventCallback = simulationCb;
 
                 const scene = physics.createScene(sceneDesc);
                 scene.setVisualizationParameter(PX.PxVisualizationParameter.eSCALE, 1);
@@ -93,7 +137,9 @@
                 const material = physics.createMaterial(0.5, 0.5, 0.5);
                 // create default simulation shape flags
                 const shapeFlags = new PX.PxShapeFlags(
-                    PX.PxShapeFlag.eSIMULATION_SHAPE | PX.PxShapeFlag.eSCENE_QUERY_SHAPE | PX.PxShapeFlag.eVISUALIZATION
+                    PX.PxShapeFlag.eSIMULATION_SHAPE |
+                    PX.PxShapeFlag.eSCENE_QUERY_SHAPE |
+                    PX.PxShapeFlag.eVISUALIZATION
                 );
 
                 // create a few temporary objects used during setup
@@ -103,6 +149,7 @@
                 // create a ground plane
                 const plane = new PX.PxPlane(0, 1, 0, 0);
                 const ground = PX.CreatePlane(physics, plane, material, shapeFlags, tmpFilterData);
+                ground.setName(createCString(`ground`));
                 scene.addActor(ground);
 
                 // create a few dynamic boxes with size 1x1x1, which will fall on the ground
@@ -116,8 +163,27 @@
                     boxShape.setSimulationFilterData(tmpFilterData);
                     const box = physics.createRigidDynamic(tmpPose);
                     box.attachShape(boxShape);
+                    box.setName(createCString(`box-${y}`));
                     scene.addActor(box);
                 }
+
+                // create a trigger box
+                tmpVec.x = 0;
+                tmpVec.y = 25;
+                tmpVec.z = 0;
+                tmpPose.p = tmpVec;
+                const triggerFlags = new PX.PxShapeFlags(
+                    PX.PxShapeFlag.eSIMULATION_SHAPE |
+                    PX.PxShapeFlag.eSCENE_QUERY_SHAPE |
+                    PX.PxShapeFlag.eVISUALIZATION |
+                    PX.PxShapeFlag.eTRIGGER_SHAPE
+                );
+                const boxShape = physics.createShape(boxGeometry, material, true, triggerFlags);
+                boxShape.setSimulationFilterData(tmpFilterData);
+                const box = physics.createRigidDynamic(tmpPose);
+                box.attachShape(boxShape);
+                box.setName(createCString('box-trigger'));
+                scene.addActor(box);
 
                 // clean up temp objects
                 PX.release(plane);
@@ -126,6 +192,7 @@
                 PX.release(tmpPose);
                 PX.release(tmpVec);
                 PX.release(shapeFlags);
+                PX.release(triggerFlags);
                 PX.release(sceneDesc);
                 PX.release(tolerances);
                 console.log('[PHYSX]: Create scene objects');
@@ -243,6 +310,13 @@
                     const g = (color >> 8) & 0xff;
                     const b = color & 0xff;
                     return `rgb(${r}, ${g}, ${b}, ${a / 255})`;
+                }
+
+                function createCString(str) {
+                    const cstr = str + '\0';
+                    const ptr = PX.malloc(cstr.length);
+                    PX.HEAPU8.set(new TextEncoder().encode(cstr), ptr);
+                    return ptr;
                 }
             });
         </script>
