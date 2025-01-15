@@ -11,9 +11,9 @@ The bindings include most major parts of the PhysX SDK (excluding CUDA stuff, wh
     - All geometry types (box, capsule, sphere, plane, convex mesh, triangle mesh and height field)
 - [x] All joint types (revolute, spherical, prismatic, fixed, distance and D6)
 - [x] Articulations
-- [x] Vehicles
+- [ ] Vehicles
 - [x] Character controllers
-- [x] Scene serialization
+- [ ] Scene serialization
 
 ## Getting started
 There is a basic [hello world example](dist/helloworld.html): 10 boxes falling on the ground (drawn as wireframe on a plain canvas).
